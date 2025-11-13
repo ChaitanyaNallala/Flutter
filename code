@@ -1,0 +1,352 @@
+import 'package:flutter/material.dart';
+import 'dart:math';
+
+void main() => runApp(const GameHubApp());
+
+class GameHubApp extends StatelessWidget {
+  const GameHubApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Math Game Hub',
+      theme: ThemeData(primarySwatch: Colors.teal),
+      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
+    );
+  }
+}
+
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("🎮 Math Game Hub"),
+        centerTitle: true,
+      ),
+      backgroundColor: Colors.teal.shade50,
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: 20,
+          crossAxisSpacing: 20,
+          children: [
+            _buildGameCard(
+              context,
+              "Number Riddle",
+              Icons.calculate,
+              const NumberRiddleGame(),
+            ),
+            _buildGameCard(
+              context,
+              "Magic Square",
+              Icons.grid_on,
+              const MagicSquareGame(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGameCard(
+      BuildContext context, String title, IconData icon, Widget page) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => page),
+        );
+      },
+      child: Card(
+        color: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 60, color: Colors.teal),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 🧮 Number Riddle Game
+///////////////////////////////////////////////////////////////////////////////
+class NumberRiddleGame extends StatefulWidget {
+  const NumberRiddleGame({super.key});
+
+  @override
+  State<NumberRiddleGame> createState() => _NumberRiddleGameState();
+}
+
+class _NumberRiddleGameState extends State<NumberRiddleGame> {
+  final List<Map<String, dynamic>> riddles = [
+    {
+      'question': '1 + 4 = 5\n2 + 5 = 12\n3 + 6 = 21\n8 + 11 = ?',
+      'answer': '96',
+      'hint': 'Multiply, then add the first number.',
+    },
+    {
+      'question': '3 + 3 = 27\n4 + 4 = 64\n5 + 5 = ?',
+      'answer': '125',
+      'hint': 'Think cubes.',
+    },
+    {
+      'question': '5 + 2 = 37\n6 + 3 = 63\n7 + 4 = ?',
+      'answer': '91',
+      'hint': 'Multiply, then add both numbers.',
+    },
+  ];
+
+  int currentIndex = 0;
+  String feedback = '';
+  final TextEditingController _controller = TextEditingController();
+  bool showHint = false;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = Random().nextInt(riddles.length);
+  }
+
+  void checkAnswer() {
+    final correct = riddles[currentIndex]['answer'];
+    if (_controller.text.trim() == correct) {
+      setState(() => feedback = '✅ Correct! You solved it!');
+    } else {
+      setState(() => feedback = '❌ Try again.');
+    }
+  }
+
+  void nextRiddle() {
+    setState(() {
+      feedback = '';
+      showHint = false;
+      _controller.clear();
+      currentIndex = Random().nextInt(riddles.length);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final riddle = riddles[currentIndex];
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('🧮 Number Riddle')),
+      body: SingleChildScrollView( // Added SingleChildScrollView to prevent overflow
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              riddle['question'],
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _controller,
+              decoration: const InputDecoration(
+                  labelText: "Your Answer", border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: checkAnswer, child: const Text("Check")),
+            const SizedBox(height: 10),
+            if (feedback.isNotEmpty)
+              Text(feedback, style: const TextStyle(fontSize: 18)),
+            if (showHint)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "💡 Hint: ${riddle['hint']}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontStyle: FontStyle.italic),
+                ),
+              ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton(
+                  onPressed: () => setState(() => showHint = true),
+                  child: const Text("Show Hint"),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                    onPressed: nextRiddle, child: const Text("Next Riddle")),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// 🟦 Magic Square Puzzle Game
+///////////////////////////////////////////////////////////////////////////////
+class MagicSquareGame extends StatefulWidget {
+  const MagicSquareGame({super.key});
+
+  @override
+  State<MagicSquareGame> createState() => _MagicSquareGameState();
+}
+
+class _MagicSquareGameState extends State<MagicSquareGame> {
+  final int size = 3; // 3x3 magic square
+  List<List<int?>> grid = [];
+  int? missingRow;
+  int? missingCol;
+  String feedback = '';
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    generatePuzzle();
+  }
+
+  void generatePuzzle() {
+    // Predefined simple 3x3 magic square
+    List<List<int>> complete = [
+      [8, 1, 6],
+      [3, 5, 7],
+      [4, 9, 2],
+    ];
+
+    grid = complete.map((row) => row.map((e) => e as int?).toList()).toList();
+
+    Random rand = Random();
+    missingRow = rand.nextInt(size);
+    missingCol = rand.nextInt(size);
+    grid[missingRow!][missingCol!] = null;
+
+    feedback = '';
+    _controller.clear();
+    setState(() {});
+  }
+
+  void checkAnswer() {
+    int? answer = int.tryParse(_controller.text);
+    // For checking, we need the original full grid to compare.
+    // Re-generate the full grid for comparison since `grid` is modified.
+    List<List<int>> complete = [
+      [8, 1, 6],
+      [3, 5, 7],
+      [4, 9, 2],
+    ];
+    if (answer != null && answer == complete[missingRow!][missingCol!]) {
+      setState(() {
+        feedback = '✅ Correct! Magic square completed!';
+      });
+    } else {
+      setState(() => feedback = '❌ Wrong, try again!');
+    }
+  }
+
+  int magicNumber() {
+    // Sum of each row, column, diagonal is 15 for 3x3 magic square
+    return 15;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('🟦 Magic Square')),
+      body: SingleChildScrollView( // Added SingleChildScrollView to prevent overflow
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Text(
+              'Fill in the missing number to complete the magic square. The sum of each row, column, and main diagonal must be ${magicNumber()}.',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(), // Prevents GridView from having its own scroll if it also overflows.
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: size,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: size * size,
+              itemBuilder: (context, index) {
+                int row = index ~/ size;
+                int col = index % size;
+                int? value = grid[row][col];
+
+                bool isMissingCell = (row == missingRow && col == missingCol);
+
+                return Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.teal, width: 2),
+                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.teal.shade50,
+                  ),
+                  alignment: Alignment.center,
+                  child: isMissingCell
+                      ? TextField(
+                          controller: _controller,
+                          keyboardType: TextInputType.number,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: '?',
+                            hintStyle: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey),
+                          ),
+                        )
+                      : Text(
+                          value?.toString() ?? '',
+                          style: const TextStyle(
+                              fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: checkAnswer, child: const Text("Check")),
+            const SizedBox(height: 10),
+            if (feedback.isNotEmpty)
+              Text(
+                feedback,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: feedback.startsWith('✅') ? Colors.green : Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+                onPressed: generatePuzzle, child: const Text("New Puzzle")),
+          ],
+        ),
+      ),
+    );
+  }
+}
