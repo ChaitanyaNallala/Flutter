@@ -96,23 +96,58 @@ class NumberRiddleGame extends StatefulWidget {
 }
 
 class _NumberRiddleGameState extends State<NumberRiddleGame> {
-  final List<Map<String, dynamic>> riddles = [
-    {
-      'question': '1 + 4 = 5\n2 + 5 = 12\n3 + 6 = 21\n8 + 11 = ?',
-      'answer': '96',
-      'hint': 'Multiply, then add the first number.',
-    },
-    {
-      'question': '3 + 3 = 27\n4 + 4 = 64\n5 + 5 = ?',
-      'answer': '125',
-      'hint': 'Think cubes.',
-    },
-    {
-      'question': '5 + 2 = 37\n6 + 3 = 63\n7 + 4 = ?',
-      'answer': '91',
-      'hint': 'Multiply, then add both numbers.',
-    },
-  ];
+final List<Map<String, dynamic>> riddles = [
+  {
+    'question': '1 + 4 = 5\n2 + 5 = 12\n3 + 6 = 21\n8 + 11 = ?',
+    'answer': '96',
+    'hint': 'Multiply, then add the first number.',
+  },
+  {
+    'question': '3 + 3 = 27\n4 + 4 = 64\n5 + 5 = ?',
+    'answer': '125',
+    'hint': 'Think cubes.',
+  },
+  {
+    'question': '5 + 2 = 37\n6 + 3 = 63\n7 + 4 = ?',
+    'answer': '91',
+    'hint': 'Multiply, then add both numbers.',
+  },
+  {
+    'question': '2 + 3 = 10\n3 + 4 = 21\n4 + 5 = ?',
+    'answer': '36',
+    'hint': 'Multiply, then add the product of the two numbers.',
+  },
+  {
+    'question': '1 × 2 = 2\n2 × 3 = 6\n3 × 4 = ?',
+    'answer': '12',
+    'hint': 'Simple multiplication pattern.',
+  },
+  {
+    'question': '2 → 6 → 12 → 20 → ?',
+    'answer': '30',
+    'hint': 'Look at the differences: 4, 6, 8…',
+  },
+  {
+    'question': '5, 10, 20, 40, ?',
+    'answer': '80',
+    'hint': 'Each number doubles the previous one.',
+  },
+  {
+    'question': '7 + 8 = 56\n9 + 6 = 63\n5 + 4 = ?',
+    'answer': '45',
+    'hint': 'Multiply the two numbers then subtract one of them.',
+  },
+  {
+    'question': '0 + 1 = 1\n1 + 2 = 3\n2 + 3 = 5\n3 + 5 = ?',
+    'answer': '8',
+    'hint': 'Fibonacci sequence.',
+  },
+  {
+    'question': '4 × 4 = 16\n5 × 5 = 25\n6 × 6 = ?',
+    'answer': '36',
+    'hint': 'Simple square numbers.',
+  },
+];
 
   int currentIndex = 0;
   String feedback = '';
@@ -202,7 +237,7 @@ class _NumberRiddleGameState extends State<NumberRiddleGame> {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-/// 🟦 Magic Square Puzzle Game
+/// 🟦 Magic Square Puzzle Game (Responsive)
 ///////////////////////////////////////////////////////////////////////////////
 class MagicSquareGame extends StatefulWidget {
   const MagicSquareGame({super.key});
@@ -226,7 +261,6 @@ class _MagicSquareGameState extends State<MagicSquareGame> {
   }
 
   void generatePuzzle() {
-    // Predefined simple 3x3 magic square
     List<List<int>> complete = [
       [8, 1, 6],
       [3, 5, 7],
@@ -247,8 +281,6 @@ class _MagicSquareGameState extends State<MagicSquareGame> {
 
   void checkAnswer() {
     int? answer = int.tryParse(_controller.text);
-    // For checking, we need the original full grid to compare.
-    // Re-generate the full grid for comparison since `grid` is modified.
     List<List<int>> complete = [
       [8, 1, 6],
       [3, 5, 7],
@@ -263,16 +295,18 @@ class _MagicSquareGameState extends State<MagicSquareGame> {
     }
   }
 
-  int magicNumber() {
-    // Sum of each row, column, diagonal is 15 for 3x3 magic square
-    return 15;
-  }
+  int magicNumber() => 15;
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double padding = 40; // total horizontal padding
+    double spacing = 8; // space between cells
+    double cellSize = (screenWidth - padding - spacing * (size - 1)) / size;
+
     return Scaffold(
       appBar: AppBar(title: const Text('🟦 Magic Square')),
-      body: SingleChildScrollView( // Added SingleChildScrollView to prevent overflow
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
@@ -284,21 +318,23 @@ class _MagicSquareGameState extends State<MagicSquareGame> {
             const SizedBox(height: 20),
             GridView.builder(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Prevents GridView from having its own scroll if it also overflows.
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: size,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
+                crossAxisSpacing: spacing,
+                mainAxisSpacing: spacing,
+                childAspectRatio: 1,
               ),
               itemCount: size * size,
               itemBuilder: (context, index) {
                 int row = index ~/ size;
                 int col = index % size;
                 int? value = grid[row][col];
-
                 bool isMissingCell = (row == missingRow && col == missingCol);
 
                 return Container(
+                  width: cellSize,
+                  height: cellSize,
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.teal, width: 2),
                     borderRadius: BorderRadius.circular(8),
@@ -310,21 +346,25 @@ class _MagicSquareGameState extends State<MagicSquareGame> {
                           controller: _controller,
                           keyboardType: TextInputType.number,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: cellSize / 2.5,
+                            fontWeight: FontWeight.bold,
+                          ),
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: '?',
                             hintStyle: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey),
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         )
                       : Text(
                           value?.toString() ?? '',
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: cellSize / 2.5,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                 );
               },
