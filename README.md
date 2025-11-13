@@ -26,8 +26,3 @@ This app is perfect for practicing logic, arithmetic, and problem-solving skills
 
 ---
 
-## 🖥 Installation
-
-1. **Clone the repository:**
-```bash
-git clone https://github.com/your-username/math-game-hub.git
